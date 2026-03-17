@@ -3,7 +3,9 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "node server.js",
+    "clean": "rm -rf .next node_modules/.cache",
+    "dev": "npm run clean && node server.js",
+    "dev:fast": "node server.js",
     "build": "next build",
     "start": "NODE_ENV=production node server.js",
     "lint": "next lint"

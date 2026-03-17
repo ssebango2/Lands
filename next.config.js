@@ -1,7 +1,13 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
-  webpack: (config, { isServer }) => {
+  // Disable webpack cache to prevent chunk errors
+  webpack: (config, { isServer, dev }) => {
+    if (dev) {
+      // In development, disable caching to prevent chunk errors
+      config.cache = false
+    }
+    
     if (isServer) {
       // Exclude socket.io and related modules from server-side bundling
       // These are used in custom server.js, not in Next.js pages

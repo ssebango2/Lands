@@ -9,8 +9,52 @@ export interface Player {
   graveyard: Card[]
 }
 
+/** Stack entry - land on stack awaiting pass/counter */
+export interface StackEntry {
+  spell: LandType
+  controller: 1 | 2
+  counterCount: number
+}
+
+/** Pending card effect - synced across clients for online multiplayer */
+export type PendingEffect =
+  | { type: 'mountain'; activePlayer: 1 | 2; cardIndex: number }
+  | { type: 'forest'; activePlayer: 1 | 2 }
+  | { type: 'swamp'; activePlayer: 1 | 2; phase: 'reveal' | 'discard'; revealedCards: number[] }
+  | { type: 'island'; activePlayer: 1 | 2; revealedCard: LandType }
+  | { type: 'counterSelect'; priorityHolder: 1 | 2; spell: LandType; counterCount: number; selectedIndices: number[] }
+  | null
+
 export interface GameState {
   players: [Player, Player]
+  activePlayer: 1 | 2
+  turnNumber: number
+  /** Stack: lands awaiting pass/counter resolution */
+  stack?: StackEntry[]
+  /** Who has priority (can pass or counter) */
+  priorityHolder?: 1 | 2
+  /** Synced pending effect so both players see Mountain/Forest/Swamp selection state */
+  pendingEffect?: PendingEffect
+  /** Set when game ends - winner player id */
+  winner?: 1 | 2
+  /** Version for optimistic concurrency - prevents stale updates overwriting in online play */
+  stateVersion?: number
+}
+
+/** Returns { playerId, reason } if player has won (1 of each land or 5 of one type), else null */
+export function getWinnerIfAny(player: Player, playerId: 1 | 2): { playerId: 1 | 2; reason: string } | null {
+  const landTypes: LandType[] = ['Plains', 'Island', 'Swamp', 'Mountain', 'Forest']
+  const hasAllTypes = landTypes.every(type => player.board.includes(type))
+  if (hasAllTypes) {
+    return { playerId, reason: 'Domain (1 of each basic land type)' }
+  }
+  for (const landType of landTypes) {
+    const count = player.board.filter(card => card === landType).length
+    if (count >= 5) {
+      return { playerId, reason: `5 ${landType}s` }
+    }
+  }
+  return null
 }
 
 const BASIC_LANDS: LandType[] = ['Plains', 'Island', 'Swamp', 'Mountain', 'Forest']
@@ -70,6 +114,8 @@ export function initializeGame(): GameState {
         graveyard: [],
       },
     ],
+    activePlayer: 1,
+    turnNumber: 1,
   }
 }
 

@@ -38,3 +38,4 @@ next-env.d.ts
 
 # cache
 node_modules/.cache
+.next/cache
