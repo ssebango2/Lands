@@ -136,6 +136,11 @@ export function useGame({ socket, playerId, gameState, setGameState }: UseGamePr
     if ((gameState.activePlayer ?? 1) !== playerId) return
     // Can't play land if stack has items (counter war in progress)
     if ((gameState.stack ?? []).length > 0) return
+    // Can't play land while pending effects (e.g. Swamp reveal, Mountain target) need to be resolved
+    if (mountainTargetSelection || forestTargetSelection || swampSelection || islandSelection || counterSelection) {
+      addLog('Complete the current card effect before playing another card')
+      return
+    }
 
     const player = gameState.players[playerId - 1]
     if (cardIndex < 0 || cardIndex >= player.hand.length) return
@@ -166,7 +171,7 @@ export function useGame({ socket, playerId, gameState, setGameState }: UseGamePr
 
     updateGameStateAndSync(stateToSync)
     addLog(`Player ${playerId} played ${cardToPlay} - awaiting response`)
-  }, [gameState, playerId, addLog, updateGameStateAndSync])
+  }, [gameState, playerId, mountainTargetSelection, forestTargetSelection, swampSelection, islandSelection, counterSelection, addLog, updateGameStateAndSync])
 
   const handleMountainTarget = useCallback((targetPlayerId: 1 | 2, cardIndex: number) => {
     if (!gameState || !mountainTargetSelection || !playerId) return

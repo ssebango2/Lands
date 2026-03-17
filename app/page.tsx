@@ -52,7 +52,7 @@ export default function Home() {
         <div className="start-screen">
           <h1>Basic Lands Game</h1>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', alignItems: 'center' }}>
-            <button className="btn btn-primary" onClick={startNewGame}>
+            <button className="btn btn-primary" onClick={startNewGame} style={{ display: 'none' }}>
               Local Game
             </button>
             <Link href="/lobby" className="btn btn-secondary" style={{ textDecoration: 'none', display: 'inline-block', textAlign: 'center' }}>
@@ -98,6 +98,7 @@ export default function Home() {
               player={gameState.players[1]}
               playerId={2}
               isActive={activePlayer === 2}
+              canPlayCard={activePlayer === 2 && !mountainTargetSelection && !forestTargetSelection && !swampSelection && !islandSelection}
               onDrawCard={() => handleDrawCard(2)}
               onPlayCard={(cardIndex) => handlePlayCard(2, cardIndex)}
               onGraveyardCardClick={forestTargetSelection && forestTargetSelection.activePlayer === 2
@@ -145,6 +146,7 @@ export default function Home() {
               player={gameState.players[0]}
               playerId={1}
               isActive={activePlayer === 1}
+              canPlayCard={activePlayer === 1 && !mountainTargetSelection && !forestTargetSelection && !swampSelection && !islandSelection}
               onDrawCard={() => handleDrawCard(1)}
               onPlayCard={(cardIndex) => handlePlayCard(1, cardIndex)}
               onGraveyardCardClick={forestTargetSelection && forestTargetSelection.activePlayer === 1

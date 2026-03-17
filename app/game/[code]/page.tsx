@@ -32,7 +32,7 @@ export default function GamePage() {
   const [playerId, setPlayerId] = useState<1 | 2 | null>(null)
   const [waitingForPlayer, setWaitingForPlayer] = useState(true)
   const [expandedGraveyard, setExpandedGraveyard] = useState<1 | 2 | null>(null)
-  const [counterEnabled, setCounterEnabled] = useState(false)
+  const [counterDisabled, setCounterDisabled] = useState(false)
   const [isGameLogOpen, setIsGameLogOpen] = useState(false)
   const [undoRequestFrom, setUndoRequestFrom] = useState<1 | 2 | null>(null)
 
@@ -124,9 +124,9 @@ export default function GamePage() {
     if (!gameState || !playerId || !handlePass) return
     if (stack.length === 0) return
     if (priorityHolder !== playerId) return
-    if (counterEnabled) return
+    if (!counterDisabled) return
     handlePass()
-  }, [gameState, playerId, stack.length, priorityHolder, counterEnabled, handlePass])
+  }, [gameState, playerId, stack.length, priorityHolder, counterDisabled, handlePass])
 
   if (waitingForPlayer) {
     return (
@@ -182,7 +182,7 @@ export default function GamePage() {
         }}
       >
         {/* Counter box - next to turn indicator when visible */}
-        {counterEnabled && stack.length > 0 && priorityHolder === playerId && (
+        {!counterDisabled && stack.length > 0 && priorityHolder === playerId && (
           <div className="stack-action-bar stack-action-bar-inline">
             <div className="stack-info">Would you like to counter?</div>
             <div className="stack-buttons">
@@ -217,10 +217,10 @@ export default function GamePage() {
           <label className="counter-toggle-label" style={{ display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer', fontSize: '14px' }}>
             <input
               type="checkbox"
-              checked={counterEnabled}
-              onChange={(e) => setCounterEnabled(e.target.checked)}
+              checked={counterDisabled}
+              onChange={(e) => setCounterDisabled(e.target.checked)}
             />
-            Enable counter
+            Disable counter
           </label>
         </div>
       </div>
@@ -240,6 +240,7 @@ export default function GamePage() {
           isActive={activePlayer === 2}
           isOpponent={playerId !== 2}
           atBottom={playerId === 2}
+          canPlayCard={activePlayer === 2 && !mountainTargetSelection && !forestTargetSelection && !swampSelection && !islandSelection && !counterSelection && stack.length === 0}
           onDrawCard={() => handleDrawCard(2)}
           onPlayCard={(cardIndex) => handlePlayCard(2, cardIndex)}
           onGraveyardCardClick={forestTargetSelection && forestTargetSelection.activePlayer === 2
@@ -295,6 +296,7 @@ export default function GamePage() {
           isActive={activePlayer === 1}
           isOpponent={playerId !== 1}
           atBottom={playerId === 1}
+          canPlayCard={activePlayer === 1 && !mountainTargetSelection && !forestTargetSelection && !swampSelection && !islandSelection && !counterSelection && stack.length === 0}
           onDrawCard={() => handleDrawCard(1)}
           onPlayCard={(cardIndex) => handlePlayCard(1, cardIndex)}
           onGraveyardCardClick={forestTargetSelection && forestTargetSelection.activePlayer === 1

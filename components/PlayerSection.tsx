@@ -21,6 +21,8 @@ interface PlayerSectionProps {
   isOpponent?: boolean
   /** When true, position this section at bottom (player's own cards). Used in multiplayer. */
   atBottom?: boolean
+  /** When false, playing cards from hand is disabled (e.g. during Swamp reveal when opponent must act) */
+  canPlayCard?: boolean
 }
 
 export default function PlayerSection({ 
@@ -37,6 +39,7 @@ export default function PlayerSection({
   swampRevealedCards = [],
   swampPhase,
   isActive = false,
+  canPlayCard = true,
   isOpponent = false,
   atBottom = undefined,
 }: PlayerSectionProps) {
@@ -116,10 +119,11 @@ export default function PlayerSection({
                     }
                   } else if (isSelectableForDiscard) {
                     onSwampDiscard!(indices[0])
-                  } else {
+                  } else if (canPlayCard) {
                     onPlayCard(indices[0])
                   }
                 }
+                const hasClickAction = isSelectableForReveal || isSelectableForDiscard || (canPlayCard && !!onPlayCard)
 
                 return (
                   <div key={cardType} className="hand-card-group">
@@ -135,7 +139,7 @@ export default function PlayerSection({
                       index={0}
                       totalCards={1}
                       isPlayer1={isPlayer1}
-                      onClick={handleClick}
+                      onClick={hasClickAction ? handleClick : undefined}
                       isInHand={true}
                       isFlat={true}
                       isSwampRevealed={isRevealed}
