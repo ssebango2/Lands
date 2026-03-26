@@ -1580,3 +1580,72 @@ body {
   border-color: #ff8c42;
   box-shadow: 0 0 12px rgba(255, 140, 66, 0.8);
 }
+
+/* === Card Draw Animation (card enters hand from deck side) === */
+@keyframes card-draw-in {
+  0% {
+    transform: translateX(55px) scale(0.55) rotate(6deg);
+    opacity: 0;
+  }
+  65% {
+    transform: translateX(-6px) scale(1.08) rotate(-1deg);
+    opacity: 1;
+    filter: drop-shadow(0 0 14px rgba(255, 215, 0, 0.85));
+  }
+  100% {
+    transform: translateX(0) scale(1) rotate(0deg);
+    opacity: 1;
+    filter: none;
+  }
+}
+
+.card-draw-anim {
+  animation: card-draw-in 0.55s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+}
+
+/* === Card Play Animation (card lands on board from hand) === */
+/* Player 1 is at bottom – card rises upward onto the board */
+@keyframes card-play-rise {
+  0% {
+    transform: translateY(60px) scale(0.7);
+    opacity: 0;
+    filter: brightness(1.9);
+  }
+  65% {
+    transform: translateY(-8px) scale(1.08);
+    opacity: 1;
+    filter: brightness(1.25);
+  }
+  100% {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+    filter: brightness(1);
+  }
+}
+
+/* Player 2 is at top – card drops downward onto the board */
+@keyframes card-play-drop {
+  0% {
+    transform: translateY(-60px) scale(0.7);
+    opacity: 0;
+    filter: brightness(1.9);
+  }
+  65% {
+    transform: translateY(8px) scale(1.08);
+    opacity: 1;
+    filter: brightness(1.25);
+  }
+  100% {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+    filter: brightness(1);
+  }
+}
+
+.card-play-anim-rise {
+  animation: card-play-rise 0.55s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+}
+
+.card-play-anim-drop {
+  animation: card-play-drop 0.55s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+}

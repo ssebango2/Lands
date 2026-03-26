@@ -1,3 +1,6 @@
+'use client'
+
+import { useRef, useState, useEffect } from 'react'
 import { Player } from '@/lib/gameLogic'
 import Card from './Card'
 import Deck from './Deck'
@@ -44,8 +47,52 @@ export default function PlayerSection({
   atBottom = undefined,
 }: PlayerSectionProps) {
   const isPlayer1 = playerId === 1
-  // In multiplayer, atBottom means player's own section. Otherwise fall back to P1=bottom.
   const isBottom = atBottom ?? isPlayer1
+
+  // --- Draw animation ---
+  const prevHandRef = useRef<typeof player.hand>(player.hand)
+  const [drawnCardType, setDrawnCardType] = useState<string | null>(null)
+  const drawTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  const prevOppHandLenRef = useRef(player.hand.length)
+  const [newOppCardIndex, setNewOppCardIndex] = useState<number | null>(null)
+  const oppTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  useEffect(() => {
+    const prevHand = prevHandRef.current
+    if (!isOpponent && player.hand.length > prevHand.length) {
+      const prevCounts: Record<string, number> = {}
+      prevHand.forEach(c => { prevCounts[c] = (prevCounts[c] || 0) + 1 })
+      const currCounts: Record<string, number> = {}
+      player.hand.forEach(c => { currCounts[c] = (currCounts[c] || 0) + 1 })
+      let newType: string | null = null
+      for (const [type, count] of Object.entries(currCounts)) {
+        if (count > (prevCounts[type] || 0)) { newType = type; break }
+      }
+      if (newType) {
+        if (drawTimerRef.current) clearTimeout(drawTimerRef.current)
+        setDrawnCardType(newType)
+        drawTimerRef.current = setTimeout(() => setDrawnCardType(null), 650)
+      }
+    }
+    prevHandRef.current = [...player.hand]
+  }, [player.hand, isOpponent])
+
+  useEffect(() => {
+    if (isOpponent && player.hand.length > prevOppHandLenRef.current) {
+      const idx = player.hand.length - 1
+      if (oppTimerRef.current) clearTimeout(oppTimerRef.current)
+      setNewOppCardIndex(idx)
+      oppTimerRef.current = setTimeout(() => setNewOppCardIndex(null), 650)
+    }
+    prevOppHandLenRef.current = player.hand.length
+  }, [player.hand.length, isOpponent])
+
+  useEffect(() => () => {
+    if (drawTimerRef.current) clearTimeout(drawTimerRef.current)
+    if (oppTimerRef.current) clearTimeout(oppTimerRef.current)
+  }, [])
+  // --- end draw animation ---
 
   return (
     <div className={`player-section ${isBottom ? 'player-section-bottom' : 'player-section-top'} ${isActive ? 'player-active' : ''}`}>
@@ -68,8 +115,9 @@ export default function PlayerSection({
               const isRevealed = swampRevealedCards.includes(index)
               const isSelectableForDiscard = swampPhase === 'discard' && isRevealed && !!onSwampDiscard
               const revealedOrder = swampRevealedCards.indexOf(index) + 1
+              const isNewOppCard = newOppCardIndex === index
               return (
-                <div key={index} className="hand-card-group">
+                <div key={isNewOppCard ? `${index}-draw` : `${index}`} className={`hand-card-group${isNewOppCard ? ' card-draw-anim' : ''}`}>
                   {swampPhase === 'reveal' && isRevealed && (
                     <div className="swamp-reveal-badges">
                       <span className="swamp-reveal-badge">{revealedOrder}</span>
@@ -125,8 +173,9 @@ export default function PlayerSection({
                 }
                 const hasClickAction = isSelectableForReveal || isSelectableForDiscard || (canPlayCard && !!onPlayCard)
 
+                const isNewCard = drawnCardType === cardType
                 return (
-                  <div key={cardType} className="hand-card-group">
+                  <div key={isNewCard ? `${cardType}-draw` : cardType} className={`hand-card-group${isNewCard ? ' card-draw-anim' : ''}`}>
                     {swampPhase === 'reveal' && revealedOrderNumbers.length > 0 && (
                       <div className="swamp-reveal-badges">
                         {revealedOrderNumbers.map((orderNum) => (
