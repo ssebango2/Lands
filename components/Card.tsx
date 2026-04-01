@@ -35,7 +35,7 @@ export default function Card({ card, index, totalCards, isPlayer1, onClick, isIn
       'Plains': '/images/plains.jpg',
       'Island': '/images/island.jpg',
       'Swamp': '/images/swamp.jpg',
-      'Mountain': '/images/mountain.png',
+      'Mountain': '/images/mountain.jpg',
       'Forest': '/images/forest.jpg',
     }
     return imageMap[landType]
@@ -62,11 +62,11 @@ export default function Card({ card, index, totalCards, isPlayer1, onClick, isIn
         onClick={onClick}
       >
         <Image
-          src="/images/card-back.png"
+          src="/images/card-back.jpg"
           alt="Card back"
-          fill
-          style={{ objectFit: 'cover' }}
-          sizes="120px"
+          width={120}
+          height={168}
+          style={{ objectFit: 'cover', position: 'absolute', top: 0, left: 0, width: '100%', height: '100%' }}
         />
       </div>
     )
@@ -81,9 +81,9 @@ export default function Card({ card, index, totalCards, isPlayer1, onClick, isIn
       <Image
         src={cardImage}
         alt={card}
-        fill
-        style={{ objectFit: 'cover' }}
-        sizes="120px"
+        width={120}
+        height={168}
+        style={{ objectFit: 'cover', position: 'absolute', top: 0, left: 0, width: '100%', height: '100%' }}
       />
       {count != null && count > 1 && (
         <span className="card-count-badge">{count}</span>

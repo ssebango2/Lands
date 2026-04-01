@@ -133,9 +133,20 @@ export default function GamePage() {
       <div className="container">
         <div className="waiting-screen">
           <h1>Waiting for Player...</h1>
-          <p>Game Code: <strong>{code}</strong></p>
-          <p>Share this code with your opponent</p>
+          <p>Share this code with your opponent:</p>
+          <div className="waiting-code-box">
+            <strong className="waiting-code-text">{code}</strong>
+            <button
+              className="btn-copy-code"
+              onClick={() => navigator.clipboard?.writeText(code)}
+            >
+              Copy
+            </button>
+          </div>
           <div className="waiting-spinner"></div>
+          <Link href="/lobby" className="btn btn-secondary waiting-back-btn">
+            ← Back to Lobby
+          </Link>
         </div>
       </div>
     )
@@ -165,23 +176,17 @@ export default function GamePage() {
       )}
       <div className="game-header">
         <div className="game-code-display">Game: {code}</div>
-        <div className="player-indicator">You are Player {playerId}</div>
+        <div className="player-indicator">P{playerId}</div>
+        <div
+          className="connection-status"
+          title={isConnected ? 'Connected' : 'Disconnected'}
+          aria-label={isConnected ? 'Connected' : 'Disconnected'}
+        >
+          <span className={`connection-dot ${isConnected ? 'connected' : 'disconnected'}`} />
+        </div>
       </div>
-      <div
-        className="turn-and-counter-panel"
-        style={{
-          position: 'absolute',
-          right: '24px',
-          top: '50%',
-          transform: 'translateY(-50%)',
-          zIndex: 1000,
-          display: 'flex',
-          flexDirection: 'row',
-          alignItems: 'center',
-          gap: '12px',
-        }}
-      >
-        {/* Counter box - next to turn indicator when visible */}
+      <div className="turn-and-counter-panel">
+        {/* Counter decision — shown when a spell is on the stack and it's our priority */}
         {!counterDisabled && stack.length > 0 && priorityHolder === playerId && (
           <div className="stack-action-bar stack-action-bar-inline">
             <div className="stack-info">Would you like to counter?</div>
@@ -197,24 +202,11 @@ export default function GamePage() {
             </div>
           </div>
         )}
-        <div
-          className="turn-indicator"
-          style={{
-            background: 'rgba(0,0,0,0.8)',
-            padding: '12px 24px',
-            borderRadius: '8px',
-            color: 'white',
-            border: `3px solid ${activePlayer === 1 ? '#4CAF50' : '#2196F3'}`,
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            gap: '12px',
-          }}
-        >
-          <div style={{ fontSize: '18px', fontWeight: 'bold' }}>
+        <div className={`turn-indicator turn-indicator-p${activePlayer}`}>
+          <div className="turn-indicator-label">
             Player {activePlayer}&apos;s Turn
           </div>
-          <label className="counter-toggle-label" style={{ display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer', fontSize: '14px' }}>
+          <label className="counter-toggle-label">
             <input
               type="checkbox"
               checked={counterDisabled}
@@ -344,17 +336,6 @@ export default function GamePage() {
         </div>
         <GameLog logs={gameLog} />
       </div>
-      {gameState?.winner && (
-        <div className="island-choice-modal">
-          <div className="island-choice-content">
-            <h3>🎉 Player {gameState.winner} Wins!</h3>
-            <p>Game Over</p>
-            <Link href="/lobby" className="btn btn-primary" style={{ textDecoration: 'none', display: 'inline-block' }}>
-              Back to Lobby
-            </Link>
-          </div>
-        </div>
-      )}
       {counterSelection && counterSelection.priorityHolder === playerId && gameState && (
         <div className="island-choice-modal">
           <div className="island-choice-content">
