@@ -1649,3 +1649,706 @@ body {
 .card-play-anim-drop {
   animation: card-play-drop 0.55s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
 }
+
+/* === Connection Status Indicator === */
+.connection-status {
+  display: flex;
+  align-items: center;
+  margin-left: auto;
+}
+
+.connection-dot {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+}
+
+.connection-dot.connected {
+  background: #4caf50;
+  box-shadow: 0 0 6px rgba(76, 175, 80, 0.8);
+}
+
+.connection-dot.disconnected {
+  background: #f44336;
+  box-shadow: 0 0 6px rgba(244, 67, 54, 0.8);
+  animation: pulse-disconnect 1.2s ease-in-out infinite;
+}
+
+@keyframes pulse-disconnect {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+
+/* =====================================================
+   TURN & COUNTER PANEL
+   Desktop: absolute-positioned right-center sidebar
+   Mobile: fixed bottom action bar
+   ===================================================== */
+
+.turn-and-counter-panel {
+  position: absolute;
+  right: 24px;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 1000;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 12px;
+}
+
+.turn-indicator {
+  background: rgba(0, 0, 0, 0.8);
+  padding: 12px 24px;
+  border-radius: 8px;
+  color: white;
+  border: 3px solid #4caf50;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+.turn-indicator-p1 { border-color: #4caf50; }
+.turn-indicator-p2 { border-color: #2196f3; }
+
+.turn-indicator-label {
+  font-size: 18px;
+  font-weight: bold;
+}
+
+/* =====================================================
+   GAME OVER OVERLAY
+   ===================================================== */
+
+.game-over-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  z-index: 3000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  backdrop-filter: blur(4px);
+  animation: fadeIn 0.3s ease;
+}
+
+.game-over-content {
+  background: rgba(26, 35, 50, 0.98);
+  border: 3px solid #ffd700;
+  border-radius: 12px;
+  padding: 40px;
+  text-align: center;
+  box-shadow: 0 0 40px rgba(255, 215, 0, 0.5);
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  align-items: center;
+}
+
+.game-over-content h2 {
+  color: #ffd700;
+  font-size: 2rem;
+}
+
+/* =====================================================
+   WAITING SCREEN ENHANCEMENTS
+   ===================================================== */
+
+.waiting-code-box {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: rgba(255, 215, 0, 0.1);
+  border: 2px solid rgba(255, 215, 0, 0.4);
+  padding: 12px 24px;
+  border-radius: 12px;
+  margin: 8px 0 4px;
+}
+
+.waiting-code-text {
+  font-size: 2rem;
+  color: #ffd700;
+  letter-spacing: 0.25em;
+  font-weight: 900;
+}
+
+.btn-copy-code {
+  background: rgba(255, 215, 0, 0.2);
+  border: 1px solid rgba(255, 215, 0, 0.5);
+  color: #ffd700;
+  padding: 6px 16px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  font-weight: 600;
+  min-height: 40px;
+  min-width: 64px;
+  transition: background 0.2s;
+  touch-action: manipulation;
+  white-space: nowrap;
+}
+
+.btn-copy-code:hover,
+.btn-copy-code:active {
+  background: rgba(255, 215, 0, 0.35);
+}
+
+.waiting-back-btn {
+  margin-top: 20px;
+  text-decoration: none !important;
+  min-height: 48px;
+  display: inline-flex !important;
+  align-items: center;
+  justify-content: center;
+}
+
+/* =====================================================
+   MOBILE-FIRST RESPONSIVE STYLES
+   Mobile:  ≤ 600px
+   Tablet:  601px – 960px
+   ===================================================== */
+
+/* --- Touch target baseline --- */
+@media (max-width: 600px) {
+  .btn {
+    min-height: 48px;
+    touch-action: manipulation;
+  }
+
+  /* --- Lobby --- */
+  .lobby-container {
+    padding: 16px;
+  }
+
+  .lobby-card {
+    padding: 28px 20px;
+    border-radius: 12px;
+  }
+
+  .lobby-card h1 {
+    font-size: 1.75rem;
+  }
+
+  .lobby-subtitle {
+    font-size: 0.95rem;
+    margin-bottom: 24px;
+  }
+
+  .game-code-input {
+    font-size: 1.4rem;
+    padding: 14px;
+    letter-spacing: 0.3em;
+    min-height: 56px;
+  }
+
+  .btn-large {
+    padding: 16px 24px;
+    font-size: 1.05rem;
+  }
+
+  /* --- Waiting screen --- */
+  .waiting-screen h1 {
+    font-size: 1.75rem;
+    padding: 0 16px;
+    text-align: center;
+  }
+
+  .waiting-screen p {
+    font-size: 1rem;
+    padding: 0 20px;
+    text-align: center;
+  }
+
+  .waiting-code-box {
+    flex-direction: column;
+    gap: 10px;
+    padding: 16px 20px;
+  }
+
+  .waiting-code-text {
+    font-size: 1.9rem;
+    letter-spacing: 0.3em;
+  }
+
+  /* --- Card sizing --- */
+  .card {
+    width: 70px !important;
+    height: 98px !important;
+    min-width: 70px !important;
+    min-height: 98px !important;
+    border-radius: 7px;
+  }
+
+  .card-face-down {
+    width: 70px !important;
+    height: 98px !important;
+    min-width: 70px !important;
+    min-height: 98px !important;
+  }
+
+  .card-count-badge {
+    width: 18px !important;
+    height: 18px !important;
+    min-width: 18px !important;
+    min-height: 18px !important;
+    font-size: 10px;
+    top: 3px !important;
+    right: 3px !important;
+  }
+
+  .hand-card-count {
+    font-size: 15px;
+  }
+
+  .swamp-reveal-badge {
+    font-size: 14px;
+    width: 18px;
+    height: 18px;
+  }
+
+  /* --- Deck --- */
+  .deck {
+    right: 8px;
+  }
+
+  .deck-stack {
+    width: 52px;
+    height: 73px;
+  }
+
+  .deck-card {
+    width: 52px;
+    height: 73px;
+  }
+
+  .deck-count {
+    font-size: 0.82rem;
+    padding: 3px 7px;
+    margin-top: 5px;
+  }
+
+  /* Center deck vertically within player section on mobile */
+  .deck-top {
+    top: 50%;
+    bottom: auto;
+    transform: translateY(-50%);
+  }
+
+  .deck-bottom {
+    top: 50%;
+    bottom: auto;
+    transform: translateY(-50%);
+  }
+
+  .deck:hover {
+    transform: translateY(-50%) scale(1.08);
+  }
+
+  /* --- Graveyard --- */
+  .graveyard {
+    left: 8px;
+    padding: 6px;
+  }
+
+  .graveyard-stack {
+    width: 52px;
+    height: 73px;
+  }
+
+  .graveyard-card {
+    width: 52px;
+    height: 73px;
+  }
+
+  .graveyard-count {
+    font-size: 0.82rem;
+    padding: 3px 7px;
+    margin-top: 5px;
+  }
+
+  .graveyard-label {
+    font-size: 0.7rem;
+    margin-bottom: 3px;
+  }
+
+  /* Center graveyard vertically within player section on mobile */
+  .graveyard-top {
+    top: 50%;
+    bottom: auto;
+    transform: translateY(-50%);
+  }
+
+  .graveyard-bottom {
+    top: 50%;
+    bottom: auto;
+    transform: translateY(-50%);
+  }
+
+  .graveyard:not(.graveyard-selectable):hover,
+  .graveyard:hover {
+    transform: translateY(-50%) scale(1.05);
+  }
+
+  /* Graveyard expanded → bottom sheet on mobile */
+  .graveyard-expanded {
+    width: 100%;
+    max-width: 100%;
+    height: 88vh;
+    max-height: 88vh;
+    border-radius: 20px 20px 0 0;
+    top: auto;
+    bottom: 0;
+    left: 0;
+    transform: none;
+  }
+
+  .graveyard-expanded-content {
+    padding: 16px;
+  }
+
+  .graveyard-expanded-card-image {
+    width: 100px;
+    height: 140px;
+  }
+
+  .graveyard-cards-list {
+    gap: 12px;
+  }
+
+  /* --- Hand container --- */
+  .hand-container {
+    margin-left: 64px !important;
+    margin-right: 64px !important;
+    flex-wrap: nowrap !important;
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch;
+    justify-content: safe center !important;
+    padding: 4px 2px;
+    scrollbar-width: none;
+    gap: 6px !important;
+  }
+
+  .hand-container::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* --- Game board: switch from absolute to flex flow on mobile --- */
+  .game-board {
+    flex-direction: column;
+    justify-content: flex-start;
+    padding-top: 48px;   /* clear the fixed header */
+    padding-bottom: 64px; /* clear the fixed bottom panel */
+    border: 2px solid rgba(255, 140, 66, 0.4);
+    box-shadow: none;
+  }
+
+  /* Player sections leave absolute positioning and join the flex flow */
+  .player-section {
+    position: relative !important;
+    height: 200px !important;
+    top: auto !important;
+    bottom: auto !important;
+    flex-shrink: 0;
+  }
+
+  .player-section-top {
+    order: 1;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+  }
+
+  .player-section-bottom {
+    order: 3;
+    border-top: 1px solid rgba(255, 255, 255, 0.07);
+  }
+
+  .player-area {
+    padding-top: 0 !important;
+    padding-bottom: 0 !important;
+  }
+
+  /* Board area: flow-based, fills remaining space */
+  .board-area {
+    position: relative !important;
+    top: auto !important;
+    left: auto !important;
+    transform: none !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    flex: 1;
+    min-height: 0;
+    padding: 4px 8px;
+    gap: 2px !important;
+    order: 2;
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: center;
+  }
+
+  .board {
+    padding: 4px 6px;
+  }
+
+  .board-cards {
+    min-height: 55px;
+    gap: 6px;
+  }
+
+  /* Fix board + combat-zone ordering so ⚔ appears between the two boards */
+  .board-area .board-player2 { order: 1; }
+  .board-area .combat-zone  { order: 2; }
+  .board-area .board-player1 { order: 3; }
+
+  /* Player 2's perspective: flip the boards so player 2 is on bottom */
+  .perspective-player2.board-area .board-player1 { order: 1; }
+  .perspective-player2.board-area .combat-zone  { order: 2; }
+  .perspective-player2.board-area .board-player2 { order: 3; }
+
+  /* Combat zone: remove absolute positioning so it sits between boards */
+  .combat-zone {
+    position: relative;
+    top: auto;
+    left: auto;
+    transform: none;
+    font-size: 1.5rem;
+    text-align: center;
+    pointer-events: none;
+    padding: 2px 0;
+  }
+
+  /* --- Game header: full-width sticky bar --- */
+  .game-header {
+    top: 0;
+    left: 0;
+    right: 0;
+    width: 100%;
+    padding: 0 12px;
+    height: 48px;
+    background: rgba(18, 26, 40, 0.98);
+    border-bottom: 1px solid rgba(255, 140, 66, 0.3);
+    gap: 8px;
+    flex-wrap: nowrap;
+  }
+
+  .game-code-display {
+    font-size: 0.8rem;
+    padding: 4px 10px;
+    white-space: nowrap;
+  }
+
+  .player-indicator {
+    font-size: 0.8rem;
+    padding: 4px 10px;
+    white-space: nowrap;
+  }
+
+  /* --- Turn / counter panel: fixed bottom action bar --- */
+  .turn-and-counter-panel {
+    position: fixed !important;
+    right: 0 !important;
+    left: 0 !important;
+    top: auto !important;
+    bottom: 0 !important;
+    transform: none !important;
+    width: 100% !important;
+    padding: 8px 16px 12px;
+    background: rgba(18, 26, 40, 0.98);
+    border-top: 2px solid rgba(255, 140, 66, 0.35);
+    flex-direction: row !important;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: center;
+    gap: 8px;
+    z-index: 1000;
+    border-radius: 0;
+  }
+
+  .turn-indicator {
+    padding: 7px 16px;
+    border-radius: 24px;
+    flex-direction: row !important;
+    gap: 10px;
+    border-width: 2px;
+  }
+
+  .turn-indicator-label {
+    font-size: 14px !important;
+  }
+
+  .counter-toggle-label {
+    font-size: 13px !important;
+    gap: 5px;
+  }
+
+  .stack-action-bar-inline {
+    padding: 7px 12px;
+  }
+
+  .stack-action-bar .stack-info {
+    font-size: 0.9rem;
+  }
+
+  .stack-action-bar .stack-buttons .btn {
+    padding: 8px 16px;
+    font-size: 0.9rem;
+    min-height: 40px;
+    min-width: 56px;
+  }
+
+  /* --- Game log toggle button: bottom-right FAB above the action bar --- */
+  .btn-game-log-between-graveyards {
+    position: fixed !important;
+    right: 8px !important;
+    left: auto !important;
+    bottom: 72px !important;
+    top: auto !important;
+    transform: none !important;
+    width: 44px !important;
+    height: 44px !important;
+    font-size: 1.3rem !important;
+    z-index: 1001;
+    border: 2px solid rgba(255, 255, 255, 0.35);
+  }
+
+  .btn-game-log-between-graveyards:hover {
+    transform: scale(1.1) !important;
+  }
+
+  /* --- Game log sidebar: full-screen on mobile --- */
+  .game-log-sidebar {
+    width: 100vw !important;
+    left: -100vw !important;
+    border-right: none !important;
+    border-top: 3px solid #ff8c42;
+  }
+
+  .game-log-sidebar.open {
+    left: 0 !important;
+  }
+
+  /* --- Modals: bottom-sheet style --- */
+  .island-choice-modal {
+    align-items: flex-end;
+  }
+
+  .island-choice-content {
+    width: 100%;
+    max-width: 100%;
+    border-radius: 20px 20px 0 0;
+    padding: 24px 20px 36px;
+    min-width: unset;
+    border-bottom: none;
+    border-left: none;
+    border-right: none;
+    border-top: 3px solid #2196f3;
+  }
+
+  .island-choice-content h3 {
+    font-size: 1.2rem;
+    margin-bottom: 14px;
+  }
+
+  .island-card-image-wrapper {
+    width: 130px;
+    height: 182px;
+  }
+
+  .island-revealed-card {
+    margin-bottom: 20px;
+  }
+
+  .island-choice-buttons {
+    gap: 10px;
+  }
+
+  .island-choice-buttons .btn {
+    min-height: 48px;
+    flex: 1;
+    min-width: unset;
+  }
+
+  .counter-cost-hand {
+    max-height: 200px;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .counter-cost-card {
+    width: 66px;
+    height: 92px;
+  }
+
+  /* --- Game over: bottom-sheet style --- */
+  .game-over-overlay {
+    align-items: flex-end;
+  }
+
+  .game-over-content {
+    width: 100%;
+    max-width: 100%;
+    border-radius: 20px 20px 0 0;
+    padding: 32px 24px 40px;
+    border-bottom: none;
+    border-left: none;
+    border-right: none;
+    border-top: 3px solid #ffd700;
+  }
+
+  .game-over-content h2 {
+    font-size: 1.6rem;
+  }
+}
+
+/* =====================================================
+   TABLET (601px – 960px)
+   ===================================================== */
+
+@media (min-width: 601px) and (max-width: 960px) {
+  .card {
+    width: 90px !important;
+    height: 126px !important;
+    min-width: 90px !important;
+    min-height: 126px !important;
+  }
+
+  .card-face-down {
+    width: 90px !important;
+    height: 126px !important;
+    min-width: 90px !important;
+    min-height: 126px !important;
+  }
+
+  .deck-stack {
+    width: 76px;
+    height: 106px;
+  }
+
+  .deck-card {
+    width: 76px;
+    height: 106px;
+  }
+
+  .graveyard-stack {
+    width: 90px;
+    height: 126px;
+  }
+
+  .graveyard-card {
+    width: 90px;
+    height: 126px;
+  }
+
+  .hand-container {
+    margin-left: 65px !important;
+    margin-right: 65px !important;
+  }
+
+  .turn-and-counter-panel {
+    right: 12px;
+  }
+
+  .game-log-sidebar {
+    width: 320px;
+  }
+}

@@ -367,8 +367,15 @@ export function useGame({ socket, playerId, gameState, setGameState }: UseGamePr
       } else if (spell === 'Swamp') {
         const opponentId = controller === 1 ? 2 : 1
         const opponent = nextState.players[opponentId - 1]
-        if (opponent.hand.length >= 3) {
-          pendingEffect = { type: 'swamp', activePlayer: controller as 1 | 2, phase: 'reveal', revealedCards: [] }
+        if (opponent.hand.length > 0) {
+          if (opponent.hand.length <= 3) {
+            // Opponent has 3 or fewer cards — auto-reveal all of them and go straight to discard
+            const allIndices = opponent.hand.map((_, i) => i)
+            pendingEffect = { type: 'swamp', activePlayer: controller as 1 | 2, phase: 'discard', revealedCards: allIndices }
+            addLog(`Opponent has ${opponent.hand.length} card(s) — all automatically revealed. Player ${controller} must choose one to discard`)
+          } else {
+            pendingEffect = { type: 'swamp', activePlayer: controller as 1 | 2, phase: 'reveal', revealedCards: [] }
+          }
         }
       } else if (spell === 'Island') {
         if (player.deck.length > 0) {
