@@ -20,6 +20,7 @@ body {
 .container {
   width: 100vw;
   height: 100vh;
+  height: 100dvh;
   margin: 0;
   padding: 0;
   display: flex;
@@ -103,6 +104,7 @@ body {
 .game-board {
   width: 100vw;
   height: 100vh;
+  height: 100dvh;
   display: flex;
   flex-direction: column;
   position: relative;
@@ -1874,18 +1876,18 @@ body {
 
   /* --- Card sizing --- */
   .card {
-    width: 70px !important;
-    height: 98px !important;
-    min-width: 70px !important;
-    min-height: 98px !important;
-    border-radius: 7px;
+    width: 62px !important;
+    height: 87px !important;
+    min-width: 62px !important;
+    min-height: 87px !important;
+    border-radius: 6px;
   }
 
   .card-face-down {
-    width: 70px !important;
-    height: 98px !important;
-    min-width: 70px !important;
-    min-height: 98px !important;
+    width: 62px !important;
+    height: 87px !important;
+    min-width: 62px !important;
+    min-height: 87px !important;
   }
 
   .card-count-badge {
@@ -1914,13 +1916,13 @@ body {
   }
 
   .deck-stack {
-    width: 52px;
-    height: 73px;
+    width: 46px;
+    height: 64px;
   }
 
   .deck-card {
-    width: 52px;
-    height: 73px;
+    width: 46px;
+    height: 64px;
   }
 
   .deck-count {
@@ -1953,13 +1955,13 @@ body {
   }
 
   .graveyard-stack {
-    width: 52px;
-    height: 73px;
+    width: 46px;
+    height: 64px;
   }
 
   .graveyard-card {
-    width: 52px;
-    height: 73px;
+    width: 46px;
+    height: 64px;
   }
 
   .graveyard-count {
@@ -2039,7 +2041,7 @@ body {
     flex-direction: column;
     justify-content: flex-start;
     padding-top: 48px;   /* clear the fixed header */
-    padding-bottom: 64px; /* clear the fixed bottom panel */
+    padding-bottom: calc(60px + env(safe-area-inset-bottom, 0px)); /* clear the fixed bottom panel + safe area */
     border: 2px solid rgba(255, 140, 66, 0.4);
     box-shadow: none;
   }
@@ -2047,7 +2049,7 @@ body {
   /* Player sections leave absolute positioning and join the flex flow */
   .player-section {
     position: relative !important;
-    height: 200px !important;
+    height: 160px !important;
     top: auto !important;
     bottom: auto !important;
     flex-shrink: 0;
@@ -2152,7 +2154,7 @@ body {
     bottom: 0 !important;
     transform: none !important;
     width: 100% !important;
-    padding: 8px 16px 12px;
+    padding: 6px 16px calc(8px + env(safe-area-inset-bottom, 0px));
     background: rgba(18, 26, 40, 0.98);
     border-top: 2px solid rgba(255, 140, 66, 0.35);
     flex-direction: row !important;
@@ -2201,7 +2203,7 @@ body {
     position: fixed !important;
     right: 8px !important;
     left: auto !important;
-    bottom: 72px !important;
+    bottom: calc(68px + env(safe-area-inset-bottom, 0px)) !important;
     top: auto !important;
     transform: none !important;
     width: 44px !important;
