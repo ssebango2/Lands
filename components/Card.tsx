@@ -10,6 +10,7 @@ interface CardProps {
   isInHand?: boolean
   isSwampRevealed?: boolean
   isSwampSelectable?: boolean
+  isForestRevealed?: boolean
   /** Show duplicate count badge (e.g. "2" when 2 copies) */
   count?: number
   /** Flat layout - no fan/rotation, for side-by-side display */
@@ -18,7 +19,7 @@ interface CardProps {
   faceDown?: boolean
 }
 
-export default function Card({ card, index, totalCards, isPlayer1, onClick, isInHand = false, isSwampRevealed = false, isSwampSelectable = false, count, isFlat = false, faceDown = false }: CardProps) {
+export default function Card({ card, index, totalCards, isPlayer1, onClick, isInHand = false, isSwampRevealed = false, isSwampSelectable = false, isForestRevealed = false, count, isFlat = false, faceDown = false }: CardProps) {
   const getCardClass = (landType: LandType): string => {
     const classMap: Record<LandType, string> = {
       'Plains': 'card-plains',
@@ -74,7 +75,7 @@ export default function Card({ card, index, totalCards, isPlayer1, onClick, isIn
 
   return (
     <div 
-      className={`card ${getCardClass(card)} ${isPlayer1 ? 'card-player1' : 'card-player2'} ${isInHand ? 'card-in-hand' : ''} ${isFlat ? 'card-flat' : ''} ${isSwampRevealed ? 'card-swamp-revealed' : ''} ${isSwampSelectable ? 'card-swamp-selectable' : ''}`}
+      className={`card ${getCardClass(card)} ${isPlayer1 ? 'card-player1' : 'card-player2'} ${isInHand ? 'card-in-hand' : ''} ${isFlat ? 'card-flat' : ''} ${isSwampRevealed ? 'card-swamp-revealed' : ''} ${isSwampSelectable ? 'card-swamp-selectable' : ''} ${isForestRevealed ? 'card-forest-revealed' : ''}`}
       style={cardStyle}
       onClick={onClick}
     >

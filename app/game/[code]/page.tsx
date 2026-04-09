@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import Image from 'next/image'
 import { useParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
@@ -16,7 +16,7 @@ function getCardImage(landType: LandType): string {
     'Plains': '/images/plains.jpg',
     'Island': '/images/island.jpg',
     'Swamp': '/images/swamp.jpg',
-    'Mountain': '/images/mountain.png',
+    'Mountain': '/images/mountain.jpg',
     'Forest': '/images/forest.jpg',
   }
   return imageMap[landType]
@@ -35,6 +35,7 @@ export default function GamePage() {
   const [counterDisabled, setCounterDisabled] = useState(false)
   const [isGameLogOpen, setIsGameLogOpen] = useState(false)
   const [undoRequestFrom, setUndoRequestFrom] = useState<1 | 2 | null>(null)
+  const [forestReveal, setForestReveal] = useState<{ playerId: 1 | 2; cardIndex: number } | null>(null)
 
   const {
     activePlayer,
@@ -128,6 +129,20 @@ export default function GamePage() {
     handlePass()
   }, [gameState, playerId, stack.length, priorityHolder, counterDisabled, handlePass])
 
+  // Detect when Forest effect resolves: show the returned card face-up until the opponent acts
+  const prevForestSelRef = useRef(forestTargetSelection)
+  useEffect(() => {
+    const prev = prevForestSelRef.current
+    if (prev && !forestTargetSelection && gameState) {
+      const forestPlayerId = prev.activePlayer
+      const forestPlayerHand = gameState.players[forestPlayerId - 1].hand
+      if (forestPlayerHand.length > 0) {
+        setForestReveal({ playerId: forestPlayerId, cardIndex: forestPlayerHand.length - 1 })
+      }
+    }
+    prevForestSelRef.current = forestTargetSelection
+  }, [forestTargetSelection, gameState])
+
   if (waitingForPlayer) {
     return (
       <div className="container">
@@ -191,11 +206,11 @@ export default function GamePage() {
           <div className="stack-action-bar stack-action-bar-inline">
             <div className="stack-info">Would you like to counter?</div>
             <div className="stack-buttons">
-              <button className="btn btn-primary" onClick={handlePass}>
+              <button className="btn btn-primary" onClick={() => { setForestReveal(null); handlePass() }}>
                 No
               </button>
               {gameState && playerId && canPayCounterCost(gameState.players[playerId - 1], stack[stack.length - 1].spell, stack[stack.length - 1].counterCount) && (
-                <button className="btn btn-secondary" onClick={handleCounter}>
+                <button className="btn btn-secondary" onClick={() => { setForestReveal(null); handleCounter() }}>
                   Yes
                 </button>
               )}
@@ -233,8 +248,8 @@ export default function GamePage() {
           isOpponent={playerId !== 2}
           atBottom={playerId === 2}
           canPlayCard={activePlayer === 2 && !mountainTargetSelection && !forestTargetSelection && !swampSelection && !islandSelection && !counterSelection && stack.length === 0}
-          onDrawCard={() => handleDrawCard(2)}
-          onPlayCard={(cardIndex) => handlePlayCard(2, cardIndex)}
+          onPlayCard={(cardIndex) => { setForestReveal(null); handlePlayCard(2, cardIndex) }}
+          forestRevealedCardIndex={forestReveal?.playerId === 2 ? forestReveal.cardIndex : undefined}
           onGraveyardCardClick={forestTargetSelection && forestTargetSelection.activePlayer === 2
             ? (cardIndex) => {
                 handleForestTarget(2, cardIndex)
@@ -289,8 +304,8 @@ export default function GamePage() {
           isOpponent={playerId !== 1}
           atBottom={playerId === 1}
           canPlayCard={activePlayer === 1 && !mountainTargetSelection && !forestTargetSelection && !swampSelection && !islandSelection && !counterSelection && stack.length === 0}
-          onDrawCard={() => handleDrawCard(1)}
-          onPlayCard={(cardIndex) => handlePlayCard(1, cardIndex)}
+          onPlayCard={(cardIndex) => { setForestReveal(null); handlePlayCard(1, cardIndex) }}
+          forestRevealedCardIndex={forestReveal?.playerId === 1 ? forestReveal.cardIndex : undefined}
           onGraveyardCardClick={forestTargetSelection && forestTargetSelection.activePlayer === 1
             ? (cardIndex) => {
                 handleForestTarget(1, cardIndex)

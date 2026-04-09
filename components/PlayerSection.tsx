@@ -9,7 +9,6 @@ import Graveyard from './Graveyard'
 interface PlayerSectionProps {
   player: Player
   playerId: number
-  onDrawCard: () => void
   onPlayCard: (cardIndex: number) => void
   onGraveyardCardClick?: (cardIndex: number) => void
   isGraveyardSelectable?: boolean
@@ -26,12 +25,13 @@ interface PlayerSectionProps {
   atBottom?: boolean
   /** When false, playing cards from hand is disabled (e.g. during Swamp reveal when opponent must act) */
   canPlayCard?: boolean
+  /** Index in the opponent's hand to show face-up (Forest effect: returned graveyard card) */
+  forestRevealedCardIndex?: number
 }
 
 export default function PlayerSection({ 
   player, 
   playerId, 
-  onDrawCard, 
   onPlayCard, 
   onGraveyardCardClick, 
   isGraveyardSelectable, 
@@ -45,6 +45,7 @@ export default function PlayerSection({
   canPlayCard = true,
   isOpponent = false,
   atBottom = undefined,
+  forestRevealedCardIndex,
 }: PlayerSectionProps) {
   const isPlayer1 = playerId === 1
   const isBottom = atBottom ?? isPlayer1
@@ -60,7 +61,7 @@ export default function PlayerSection({
 
   useEffect(() => {
     const prevHand = prevHandRef.current
-    if (!isOpponent && player.hand.length > prevHand.length) {
+    if (!isOpponent && player.hand.length >= prevHand.length) {
       const prevCounts: Record<string, number> = {}
       prevHand.forEach(c => { prevCounts[c] = (prevCounts[c] || 0) + 1 })
       const currCounts: Record<string, number> = {}
@@ -113,14 +114,20 @@ export default function PlayerSection({
             // Opponent's hand: show face down, except Swamp-revealed cards
             player.hand.map((card, index) => {
               const isRevealed = swampRevealedCards.includes(index)
+              const isForestRevealed = forestRevealedCardIndex === index
               const isSelectableForDiscard = swampPhase === 'discard' && isRevealed && !!onSwampDiscard
               const revealedOrder = swampRevealedCards.indexOf(index) + 1
               const isNewOppCard = newOppCardIndex === index
               return (
-                <div key={isNewOppCard ? `${index}-draw` : `${index}`} className={`hand-card-group${isNewOppCard ? ' card-draw-anim' : ''}`}>
+                <div key={isNewOppCard ? `${index}-draw` : `${index}`} className={`hand-card-group${isNewOppCard ? ' card-draw-anim' : ''}`} style={{ position: 'relative' }}>
                   {swampPhase === 'reveal' && isRevealed && (
                     <div className="swamp-reveal-badges">
                       <span className="swamp-reveal-badge">{revealedOrder}</span>
+                    </div>
+                  )}
+                  {isForestRevealed && (
+                    <div className="forest-reveal-badge-wrapper">
+                      <span className="forest-reveal-badge">F</span>
                     </div>
                   )}
                   <Card
@@ -131,9 +138,10 @@ export default function PlayerSection({
                     onClick={isSelectableForDiscard ? () => onSwampDiscard!(index) : undefined}
                     isInHand={true}
                     isFlat={true}
-                    faceDown={!isRevealed}
+                    faceDown={!isRevealed && !isForestRevealed}
                     isSwampRevealed={isRevealed}
                     isSwampSelectable={isSelectableForDiscard}
+                    isForestRevealed={isForestRevealed}
                   />
                 </div>
               )
@@ -204,7 +212,6 @@ export default function PlayerSection({
         <Deck 
           count={player.deck.length} 
           isPlayer1={isPlayer1}
-          onClick={isOpponent ? undefined : onDrawCard}
         />
       </div>
     </div>
