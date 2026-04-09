@@ -581,6 +581,33 @@ body {
   box-shadow: 0 0 15px rgba(155, 89, 182, 0.8) !important;
 }
 
+.card-forest-revealed {
+  border: 3px solid #27ae60 !important;
+  box-shadow: 0 0 15px rgba(39, 174, 96, 0.8) !important;
+}
+
+.forest-reveal-badge-wrapper {
+  position: absolute;
+  top: -10px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 10;
+}
+
+.forest-reveal-badge {
+  background: #27ae60;
+  color: white;
+  border-radius: 50%;
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: bold;
+  border: 2px solid white;
+}
+
 .card-swamp-selectable {
   border: 3px solid #e74c3c !important;
   box-shadow: 0 0 15px rgba(231, 76, 60, 0.8) !important;

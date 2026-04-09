@@ -8,7 +8,7 @@ const getCardImage = (landType: Card): string => {
     'Plains': '/images/plains.jpg',
     'Island': '/images/island.jpg',
     'Swamp': '/images/swamp.jpg',
-    'Mountain': '/images/mountain.png',
+    'Mountain': '/images/mountain.jpg',
     'Forest': '/images/forest.jpg',
   }
   return imageMap[landType]

@@ -15,7 +15,7 @@ const getCardImage = (landType: LandType): string => {
     'Plains': '/images/plains.jpg',
     'Island': '/images/island.jpg',
     'Swamp': '/images/swamp.jpg',
-    'Mountain': '/images/mountain.png',
+    'Mountain': '/images/mountain.jpg',
     'Forest': '/images/forest.jpg',
   }
   return imageMap[landType]
@@ -99,7 +99,6 @@ export default function Home() {
               playerId={2}
               isActive={activePlayer === 2}
               canPlayCard={activePlayer === 2 && !mountainTargetSelection && !forestTargetSelection && !swampSelection && !islandSelection}
-              onDrawCard={() => handleDrawCard(2)}
               onPlayCard={(cardIndex) => handlePlayCard(2, cardIndex)}
               onGraveyardCardClick={forestTargetSelection && forestTargetSelection.activePlayer === 2
                 ? (cardIndex) => {
@@ -147,7 +146,6 @@ export default function Home() {
               playerId={1}
               isActive={activePlayer === 1}
               canPlayCard={activePlayer === 1 && !mountainTargetSelection && !forestTargetSelection && !swampSelection && !islandSelection}
-              onDrawCard={() => handleDrawCard(1)}
               onPlayCard={(cardIndex) => handlePlayCard(1, cardIndex)}
               onGraveyardCardClick={forestTargetSelection && forestTargetSelection.activePlayer === 1
                 ? (cardIndex) => {
@@ -175,7 +173,6 @@ export default function Home() {
           <div className="game-ui-overlay">
             <GameControls
               onNewGame={startNewGame}
-              onDrawCard={handleDrawCard}
               gameState={gameState}
             />
           </div>
