@@ -10,9 +10,13 @@ export function useSocket() {
 
   useEffect(() => {
     // Initialize socket connection
+    // Polling fallback lets the client reconnect while the host is still waking
+    // from idle, when the WebSocket upgrade would fail outright.
     const socketInstance = io(process.env.NEXT_PUBLIC_SOCKET_URL || window.location.origin, {
       path: '/api/socket',
-      transports: ['websocket'],
+      transports: ['websocket', 'polling'],
+      reconnectionAttempts: 20,
+      reconnectionDelay: 2000,
     })
 
     socketInstance.on('connect', () => {

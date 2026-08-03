@@ -1,0 +1,16 @@
+services:
+  - type: web
+    name: lands
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    plan: free
+    region: oregon
+    branch: main
+    healthCheckPath: /healthz
+    envVars:
+      - key: NODE_ENV
+        value: production
+      # Set to the assigned https://<name>.onrender.com URL after the first deploy.
+      # lib/socketServer.js uses this as the Socket.IO CORS origin in production.
+      - key: NEXT_PUBLIC_APP_URL
+        sync: false

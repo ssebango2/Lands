@@ -22,6 +22,12 @@ app.prepare().then(() => {
       const parsedUrl = parse(req.url, true)
       const pathname = parsedUrl.pathname || ''
 
+      if (pathname === '/healthz') {
+        res.statusCode = 200
+        res.setHeader('Content-Type', 'text/plain')
+        return res.end('ok')
+      }
+
       // Handle game API in custom server so we use the same gameStore as socket server
       if (req.method === 'POST' && pathname === '/api/games') {
         const code = createGame()
