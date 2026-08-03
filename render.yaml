@@ -10,7 +10,7 @@ services:
     envVars:
       - key: NODE_ENV
         value: production
-      # Set to the assigned https://<name>.onrender.com URL after the first deploy.
-      # lib/socketServer.js uses this as the Socket.IO CORS origin in production.
+      # lib/socketServer.js uses this as the Socket.IO CORS origin in production,
+      # so it must match the service's public URL.
       - key: NEXT_PUBLIC_APP_URL
-        sync: false
+        value: https://lands-4df1.onrender.com
