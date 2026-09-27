@@ -1,18 +1,11 @@
 'use client'
 
+import type { KeyboardEvent } from 'react'
 import { Card } from '@/lib/gameLogic'
+import { motionKey } from '@/lib/cardMotion'
 import Image from 'next/image'
-
-const getCardImage = (landType: Card): string => {
-  const imageMap: Record<Card, string> = {
-    'Plains': '/images/plains.jpg',
-    'Island': '/images/island.jpg',
-    'Swamp': '/images/swamp.jpg',
-    'Mountain': '/images/mountain.jpg',
-    'Forest': '/images/forest.jpg',
-  }
-  return imageMap[landType]
-}
+import Dialog from './Dialog'
+import { CARD_IMAGE } from './Card'
 
 interface GraveyardProps {
   cards: Card[]
@@ -21,138 +14,134 @@ interface GraveyardProps {
   isSelectable?: boolean
   isExpanded?: boolean
   onToggleExpand?: () => void
-  playerId: number
+  playerId: 1 | 2
+  /** Newest cards still flying in; the pile shows them once they land */
+  hiddenCount?: number
+  /** Locked Forest target in this graveyard */
+  targetedCard?: Card
 }
 
-export default function Graveyard({ 
-  cards, 
-  isPlayer1, 
-  onCardClick, 
+/** Group identical lands, preserving first-seen order; indices point into the original array. */
+function groupByType(cards: Card[]): Array<{ type: Card; indices: number[] }> {
+  const groups: Array<{ type: Card; indices: number[] }> = []
+  cards.forEach((card, index) => {
+    const existing = groups.find((g) => g.type === card)
+    if (existing) existing.indices.push(index)
+    else groups.push({ type: card, indices: [index] })
+  })
+  return groups
+}
+
+export default function Graveyard({
+  cards,
+  isPlayer1,
+  onCardClick,
   isSelectable = false,
   isExpanded = false,
   onToggleExpand,
-  playerId
+  playerId,
+  hiddenCount = 0,
+  targetedCard,
 }: GraveyardProps) {
+  const pile = hiddenCount > 0 ? cards.slice(0, Math.max(0, cards.length - hiddenCount)) : cards
+  const topCard = targetedCard && pile.includes(targetedCard) ? targetedCard : pile[pile.length - 1]
+  const cardWord = `card${cards.length === 1 ? '' : 's'}`
+  const targetText = targetedCard ? ` ${targetedCard} is targeted by Forest.` : ''
+
+  const handleKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
+    if (event.key === 'Enter' || event.key === ' ') {
+      event.preventDefault()
+      onToggleExpand?.()
+    }
+  }
+
   return (
     <>
-      <div 
-        className={`graveyard ${isPlayer1 ? 'graveyard-bottom' : 'graveyard-top'} ${isSelectable ? 'graveyard-selectable' : ''}`}
-        onClick={onToggleExpand ? onToggleExpand : undefined}
+      <div
+        className={`pile graveyard ${isPlayer1 ? 'graveyard-bottom' : 'graveyard-top'} ${isSelectable ? 'graveyard-selectable' : ''}${targetedCard ? ' graveyard-targeted' : ''}`}
+        onClick={onToggleExpand}
+        onKeyDown={handleKeyDown}
         role="button"
-        aria-label={isExpanded ? 'Close graveyard' : 'View graveyard'}
-        title="Click to view graveyard"
+        tabIndex={0}
+        aria-haspopup="dialog"
+        aria-expanded={isExpanded}
+        aria-label={`Player ${playerId} graveyard, ${cards.length} ${cardWord}.${targetText} ${isSelectable ? 'Open to choose a card to return.' : 'Open to view.'}`}
       >
-        <div 
-          className="graveyard-label" 
-          onClick={onToggleExpand ? (e) => { e.stopPropagation(); onToggleExpand(); } : undefined}
-        >
-          Graveyard
+        <div className="pile-label" aria-hidden="true">
+          {isSelectable ? 'Choose a card' : 'Graveyard'}
         </div>
-        <div className="graveyard-stack">
-          {cards.length > 0 ? (
+        <div className="pile-stack graveyard-stack" aria-hidden="true" data-motion={motionKey.graveyard(playerId)}>
+          {topCard ? (
             <>
-              {cards.map((card, index) => {
-                const isTopCard = index === cards.length - 1
-                // Display cards with newest on top (reverse visual order)
-                const visualIndex = cards.length - 1 - index
-                return (
-                  <div
-                    key={`graveyard-${card}-${index}`}
-                    className={`graveyard-card ${isTopCard ? 'graveyard-card-top' : 'graveyard-card-back'} ${isSelectable && isTopCard ? 'graveyard-card-selectable' : ''}`}
-                    style={{
-                      transform: `translate(${visualIndex * 2}px, ${visualIndex * 2}px)`,
-                      opacity: isTopCard ? 1 : 1 - (visualIndex * 0.15),
-                      zIndex: index,
-                    }}
-                    onClick={(e) => {
-                      // Collapsed view: always let click bubble to expand. Selection only in expanded view.
-                      if (isSelectable && isTopCard && onCardClick) {
-                        // Don't select here - user must expand to pick a card
-                        return
-                      }
-                      // When !isSelectable, let click bubble to parent to trigger expand
-                    }}
-                  >
-                    {isTopCard ? (
-                      <Image
-                        src={getCardImage(card)}
-                        alt={card}
-                        fill
-                        style={{ objectFit: 'cover' }}
-                        sizes="120px"
-                      />
-                    ) : (
-                      <div className="graveyard-card-back-inner"></div>
-                    )}
-                    {isSelectable && isTopCard && (
-                      <div className="graveyard-card-label">{card}</div>
-                    )}
-                  </div>
-                )
-              })}
+              {pile.length > 2 && <div className="graveyard-card graveyard-card-under graveyard-card-under-2" />}
+              {pile.length > 1 && <div className="graveyard-card graveyard-card-under" />}
+              <div className="graveyard-card graveyard-card-top">
+                <Image src={CARD_IMAGE[topCard]} alt="" fill style={{ objectFit: 'cover' }} sizes="100px" />
+              </div>
             </>
           ) : (
-            <div className="graveyard-empty-indicator">Empty</div>
+            <div className="pile-empty">Empty</div>
           )}
-        </div>
-        <div 
-          className="graveyard-count"
-          onClick={onToggleExpand ? (e) => { e.stopPropagation(); onToggleExpand(); } : undefined}
-        >
-          {cards.length}
+          <span className="pile-count graveyard-count">{pile.length}</span>
+          {targetedCard && <span className="target-badge pile-target-badge">Target</span>}
         </div>
       </div>
       {isExpanded && (
-        <>
-          <div className="graveyard-backdrop" onClick={onToggleExpand}></div>
-          <div className={`graveyard-expanded ${isPlayer1 ? 'graveyard-expanded-bottom' : 'graveyard-expanded-top'}`}>
-            <div className="graveyard-expanded-header">
-              <h3>Player {playerId} Graveyard</h3>
-              <button className="graveyard-close-btn" onClick={(e) => {
-                e.stopPropagation()
-                onToggleExpand?.()
-              }}>×</button>
-            </div>
-            <div className="graveyard-expanded-content">
-              {cards.length === 0 ? (
-                <div className="graveyard-empty">Graveyard is empty</div>
-              ) : (
-                <div className="graveyard-cards-list graveyard-cards-flat">
-                  {cards.map((card, index) => {
-                    const sameTypeIndices = cards.map((c, i) => c === card ? i : -1).filter(i => i >= 0)
-                    const isLastOfType = index === sameTypeIndices[sameTypeIndices.length - 1]
-                    const duplicateCount = sameTypeIndices.length
-                    return (
-                      <div
-                        key={`expanded-${card}-${index}`}
-                        className={`graveyard-expanded-card graveyard-expanded-card-flat ${isSelectable ? 'graveyard-expanded-card-selectable' : ''}`}
-                        onClick={(e) => {
-                          e.stopPropagation()
-                          if (isSelectable && onCardClick) onCardClick(index)
-                        }}
+        <Dialog
+          className="dialog-wide graveyard-dialog"
+          eyebrow={`Player ${playerId}`}
+          title="Graveyard"
+          description={
+            isSelectable
+              ? 'Choose a land to return to your hand. Your opponent can respond once you choose.'
+              : `${cards.length} ${cardWord}, grouped by land type.`
+          }
+          onClose={onToggleExpand}
+          closeLabel="Close graveyard"
+        >
+          {cards.length === 0 ? (
+            <p className="dialog-empty">This graveyard is empty.</p>
+          ) : (
+            <ul className="card-gallery">
+              {groupByType(cards).map(({ type, indices }) => {
+                const isTarget = targetedCard === type
+                const art = (
+                  <>
+                    <span className="gallery-card-art">
+                      <Image src={CARD_IMAGE[type]} alt="" fill style={{ objectFit: 'cover' }} sizes="150px" />
+                      {indices.length > 1 && (
+                        <span className="card-count-badge" aria-hidden="true">×{indices.length}</span>
+                      )}
+                      {isTarget && <span className="target-badge" aria-hidden="true">Target</span>}
+                    </span>
+                    <span className="gallery-card-name">{type}</span>
+                  </>
+                )
+                const countText = indices.length > 1 ? ` (${indices.length} copies)` : ''
+                const targetLabel = isTarget ? ', targeted by Forest' : ''
+                return (
+                  <li key={type}>
+                    {isSelectable && onCardClick ? (
+                      <button
+                        type="button"
+                        className="gallery-card gallery-card-selectable"
+                        onClick={() => onCardClick(indices[indices.length - 1])}
+                        aria-label={`Return ${type} to hand${countText}`}
                       >
-                        <div className="graveyard-expanded-card-image">
-                          <Image
-                            src={getCardImage(card)}
-                            alt={card}
-                            fill
-                            style={{ objectFit: 'cover' }}
-                            sizes="150px"
-                          />
-                        </div>
-                        {isLastOfType && duplicateCount > 1 && (
-                          <div className="graveyard-card-count-badge">{duplicateCount}</div>
-                        )}
+                        {art}
+                      </button>
+                    ) : (
+                      <div className={`gallery-card${isTarget ? ' gallery-card-targeted' : ''}`} aria-label={`${type}${countText}${targetLabel}`} role="img">
+                        {art}
                       </div>
-                    )
-                  })}
-                </div>
-              )}
-            </div>
-          </div>
-        </>
+                    )}
+                  </li>
+                )
+              })}
+            </ul>
+          )}
+        </Dialog>
       )}
     </>
   )
 }
-

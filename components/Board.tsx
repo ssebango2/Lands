@@ -2,15 +2,20 @@
 
 import { useRef, useState, useEffect } from 'react'
 import { Card as CardType } from '@/lib/gameLogic'
+import { motionKey } from '@/lib/cardMotion'
 import Card from './Card'
 
 interface BoardProps {
   cards: CardType[]
-  playerId: number
+  playerId: 1 | 2
+  /** Land locked in as a Mountain target (shown to both players) */
+  targetedCard?: CardType
   onCardClick?: (cardIndex: number) => void
   isSelectable?: boolean
   /** When counter is pending, show this card on board as if played (visual only) */
   pendingCard?: CardType
+  /** Owner caption shown along the edge of the battlefield row */
+  label?: string
 }
 
 function detectNewType(prevCards: CardType[], currCards: CardType[]): CardType | null {
@@ -24,7 +29,7 @@ function detectNewType(prevCards: CardType[], currCards: CardType[]): CardType |
   return null
 }
 
-export default function Board({ cards, playerId, onCardClick, isSelectable = false, pendingCard }: BoardProps) {
+export default function Board({ cards, playerId, onCardClick, isSelectable = false, pendingCard, label, targetedCard }: BoardProps) {
   const displayCards = pendingCard ? [...cards, pendingCard] : cards
 
   // --- Play animation ---
@@ -88,32 +93,52 @@ export default function Board({ cards, playerId, onCardClick, isSelectable = fal
   const playAnimClass = playerId === 1 ? 'card-play-anim-rise' : 'card-play-anim-drop'
 
   return (
-    <div className={`board board-player${playerId}`}>
+    <section className={`board board-player${playerId}${isSelectable ? ' board-targeting' : ''}`} aria-label={label ? `${label} battlefield` : undefined}>
+      {label && <div className="board-label" aria-hidden="true">{label}</div>}
       <div className="board-cards board-cards-flat">
-        {displayCards.length === 0 ? null : (
-          Object.entries(cardGroups).map(([cardType, cardGroup]) => {
-            const count = cardGroup.length
-            const isSelectableCard = isSelectable
-            const isAnimating = playedCardType === (cardType as CardType)
-            return (
-              <div
-                key={isAnimating ? `${cardType}-play` : cardType}
-                className={`board-card-flat board-card-group ${isSelectableCard ? 'board-card-selectable' : ''} ${isAnimating ? playAnimClass : ''}`}
-                onClick={() => isSelectableCard && handleCardClick(cardType as CardType)}
-              >
-                <Card
-                  card={cardType as CardType}
-                  index={0}
-                  totalCards={1}
-                  isPlayer1={playerId === 1}
-                  isFlat={true}
-                  count={count}
-                />
-              </div>
-            )
-          })
-        )}
+        {Object.entries(cardGroups).map(([cardType, cardGroup]) => {
+          const count = cardGroup.length
+          const isSelectableCard = isSelectable
+          const isAnimating = playedCardType === (cardType as CardType)
+          const isTargeted = targetedCard === cardType
+          const selectProps = isSelectableCard
+            ? {
+                role: 'button' as const,
+                tabIndex: 0,
+                'aria-label': `Target ${cardType}`,
+                onKeyDown: (event: React.KeyboardEvent<HTMLDivElement>) => {
+                  if (event.key === 'Enter' || event.key === ' ') {
+                    event.preventDefault()
+                    handleCardClick(cardType as CardType)
+                  }
+                },
+              }
+            : {}
+          return (
+            <div
+              key={isAnimating ? `${cardType}-play` : cardType}
+              className={`board-card-flat board-card-group ${isSelectableCard ? 'board-card-selectable' : ''} ${isAnimating ? playAnimClass : ''}${isTargeted ? ' board-card-targeted' : ''}`}
+              onClick={() => isSelectableCard && handleCardClick(cardType as CardType)}
+              data-motion={motionKey.board(playerId, cardType as CardType)}
+              {...selectProps}
+            >
+              {isTargeted && (
+                <span className="target-badge" role="note" aria-label={`${cardType} is targeted by Mountain`}>
+                  Target
+                </span>
+              )}
+              <Card
+                card={cardType as CardType}
+                index={0}
+                totalCards={1}
+                isPlayer1={playerId === 1}
+                isFlat={true}
+                count={count}
+              />
+            </div>
+          )
+        })}
       </div>
-    </div>
+    </section>
   )
 }

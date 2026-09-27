@@ -1,14 +1,15 @@
 'use client'
 
-import { useRef, useState, useEffect } from 'react'
-import { Player } from '@/lib/gameLogic'
+import { Card as CardType, LandType, Player } from '@/lib/gameLogic'
+import { motionKey } from '@/lib/cardMotion'
+import { MotionHolds, NO_HOLDS } from '@/lib/useCardMotion'
 import Card from './Card'
 import Deck from './Deck'
 import Graveyard from './Graveyard'
 
 interface PlayerSectionProps {
   player: Player
-  playerId: number
+  playerId: 1 | 2
   onPlayCard: (cardIndex: number) => void
   onGraveyardCardClick?: (cardIndex: number) => void
   isGraveyardSelectable?: boolean
@@ -18,6 +19,8 @@ interface PlayerSectionProps {
   onSwampDiscard?: (cardIndex: number) => void
   swampRevealedCards?: number[]
   swampPhase?: 'reveal' | 'discard' | null
+  /** Set while this player must discard down to the hand limit */
+  onHandLimitDiscard?: (cardIndex: number) => void
   isActive?: boolean
   /** In online mode: true when this is the opponent's section (show their hand face down) */
   isOpponent?: boolean
@@ -27,78 +30,76 @@ interface PlayerSectionProps {
   canPlayCard?: boolean
   /** Index in the opponent's hand to show face-up (Forest effect: returned graveyard card) */
   forestRevealedCardIndex?: number
+  /** Graveyard card locked in as a Forest target (shown to both players) */
+  graveyardTarget?: LandType
+  /** Cards still travelling here; hidden until they land */
+  motionHolds?: MotionHolds
+  /** Opening intro: override visible hand size (null = full hand) */
+  introHandCount?: number | null
+  /** Opening intro: override deck count display (null = real count) */
+  introDeckCount?: number | null
+  /** Opening intro: play deck shuffle animation */
+  isShuffling?: boolean
+  /** Opening intro: deal cards one-by-one instead of grouping by type */
+  isIntroDealing?: boolean
 }
 
-export default function PlayerSection({ 
-  player, 
-  playerId, 
-  onPlayCard, 
-  onGraveyardCardClick, 
-  isGraveyardSelectable, 
-  isGraveyardExpanded, 
+export default function PlayerSection({
+  player,
+  playerId,
+  onPlayCard,
+  onGraveyardCardClick,
+  isGraveyardSelectable,
+  isGraveyardExpanded,
   onToggleGraveyard,
   onSwampReveal,
   onSwampDiscard,
   swampRevealedCards = [],
   swampPhase,
+  onHandLimitDiscard,
   isActive = false,
   canPlayCard = true,
   isOpponent = false,
   atBottom = undefined,
   forestRevealedCardIndex,
+  graveyardTarget,
+  motionHolds = NO_HOLDS,
+  introHandCount = null,
+  introDeckCount = null,
+  isShuffling = false,
+  isIntroDealing = false,
 }: PlayerSectionProps) {
   const isPlayer1 = playerId === 1
   const isBottom = atBottom ?? isPlayer1
 
-  // --- Draw animation ---
-  const prevHandRef = useRef<typeof player.hand>(player.hand)
-  const [drawnCardType, setDrawnCardType] = useState<string | null>(null)
-  const drawTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const visibleHand =
+    introHandCount == null ? player.hand : player.hand.slice(0, Math.max(0, introHandCount))
+  const deckCount = introDeckCount ?? player.deck.length
+  const firstInFlightIndex = visibleHand.length - motionHolds.handTail
 
-  const prevOppHandLenRef = useRef(player.hand.length)
-  const [newOppCardIndex, setNewOppCardIndex] = useState<number | null>(null)
-  const oppTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
-
-  useEffect(() => {
-    const prevHand = prevHandRef.current
-    if (!isOpponent && player.hand.length >= prevHand.length) {
-      const prevCounts: Record<string, number> = {}
-      prevHand.forEach(c => { prevCounts[c] = (prevCounts[c] || 0) + 1 })
-      const currCounts: Record<string, number> = {}
-      player.hand.forEach(c => { currCounts[c] = (currCounts[c] || 0) + 1 })
-      let newType: string | null = null
-      for (const [type, count] of Object.entries(currCounts)) {
-        if (count > (prevCounts[type] || 0)) { newType = type; break }
-      }
-      if (newType) {
-        if (drawTimerRef.current) clearTimeout(drawTimerRef.current)
-        setDrawnCardType(newType)
-        drawTimerRef.current = setTimeout(() => setDrawnCardType(null), 650)
-      }
-    }
-    prevHandRef.current = [...player.hand]
-  }, [player.hand, isOpponent])
-
-  useEffect(() => {
-    if (isOpponent && player.hand.length > prevOppHandLenRef.current) {
-      const idx = player.hand.length - 1
-      if (oppTimerRef.current) clearTimeout(oppTimerRef.current)
-      setNewOppCardIndex(idx)
-      oppTimerRef.current = setTimeout(() => setNewOppCardIndex(null), 650)
-    }
-    prevOppHandLenRef.current = player.hand.length
-  }, [player.hand.length, isOpponent])
-
-  useEffect(() => () => {
-    if (drawTimerRef.current) clearTimeout(drawTimerRef.current)
-    if (oppTimerRef.current) clearTimeout(oppTimerRef.current)
-  }, [])
-  // --- end draw animation ---
+  const renderIntroDealHand = () =>
+    visibleHand.map((card, index) => (
+      <div
+        key={`intro-${index}-${card}`}
+        className="hand-card-group card-deal-anim"
+        style={{ animationDelay: '0ms' }}
+      >
+        <Card
+          card={card}
+          index={index}
+          totalCards={visibleHand.length}
+          isPlayer1={isPlayer1}
+          isInHand={true}
+          isFlat={true}
+          faceDown={isOpponent}
+        />
+      </div>
+    ))
 
   return (
     <div className={`player-section ${isBottom ? 'player-section-bottom' : 'player-section-top'} ${isActive ? 'player-active' : ''}`}>
       <div className="player-area">
-        <Graveyard 
+        <Graveyard
           cards={player.graveyard}
           isPlayer1={isPlayer1}
           onCardClick={onGraveyardCardClick}
@@ -106,34 +107,48 @@ export default function PlayerSection({
           isExpanded={isGraveyardExpanded}
           onToggleExpand={onToggleGraveyard}
           playerId={playerId}
+          hiddenCount={motionHolds.graveyard}
+          targetedCard={graveyardTarget}
         />
-        <div className={`hand-container ${isBottom ? 'hand-container-bottom' : 'hand-container-top'}`}>
-          {player.hand.length === 0 ? (
-            <div className="empty-hand">No cards in hand</div>
+        <div
+          className={`hand-container ${isBottom ? 'hand-container-bottom' : 'hand-container-top'}${isOpponent ? ' hand-container-opponent' : ''}`}
+          aria-label={`Player ${playerId} hand, ${visibleHand.length} card${visibleHand.length === 1 ? '' : 's'}`}
+          role="group"
+          data-motion={motionKey.hand(playerId)}
+        >
+          {visibleHand.length === 0 ? (
+            <div className="empty-hand">{isShuffling ? 'Shuffling…' : 'No cards in hand'}</div>
+          ) : isIntroDealing ? (
+            renderIntroDealHand()
           ) : isOpponent ? (
             // Opponent's hand: show face down, except Swamp-revealed cards
-            player.hand.map((card, index) => {
+            visibleHand.map((card, index) => {
               const isRevealed = swampRevealedCards.includes(index)
               const isForestRevealed = forestRevealedCardIndex === index
               const isSelectableForDiscard = swampPhase === 'discard' && isRevealed && !!onSwampDiscard
               const revealedOrder = swampRevealedCards.indexOf(index) + 1
-              const isNewOppCard = newOppCardIndex === index
+              const inFlight = index >= firstInFlightIndex
               return (
-                <div key={isNewOppCard ? `${index}-draw` : `${index}`} className={`hand-card-group${isNewOppCard ? ' card-draw-anim' : ''}`} style={{ position: 'relative' }}>
+                <div
+                  key={index}
+                  className={`hand-card-group${inFlight ? ' motion-awaiting' : ''}`}
+                  style={{ position: 'relative' }}
+                  data-motion={motionKey.handIndex(playerId, index)}
+                >
                   {swampPhase === 'reveal' && isRevealed && (
                     <div className="swamp-reveal-badges">
-                      <span className="swamp-reveal-badge">{revealedOrder}</span>
+                      <span className="swamp-reveal-badge" title={`Revealed card ${revealedOrder}`}>{revealedOrder}</span>
                     </div>
                   )}
                   {isForestRevealed && (
                     <div className="forest-reveal-badge-wrapper">
-                      <span className="forest-reveal-badge">F</span>
+                      <span className="forest-reveal-badge" title="Returned from graveyard by Forest">Returned</span>
                     </div>
                   )}
                   <Card
-                    card={card as import('@/lib/gameLogic').LandType}
+                    card={card}
                     index={index}
-                    totalCards={player.hand.length}
+                    totalCards={visibleHand.length}
                     isPlayer1={isPlayer1}
                     onClick={isSelectableForDiscard ? () => onSwampDiscard!(index) : undefined}
                     isInHand={true}
@@ -149,14 +164,15 @@ export default function PlayerSection({
           ) : (
             (() => {
               // My hand: group by card type - show one card per type with count above
-              const groups = player.hand.reduce((acc, card, index) => {
+              const groups = visibleHand.reduce((acc, card, index) => {
                 if (!acc[card]) acc[card] = []
                 acc[card].push(index)
                 return acc
               }, {} as Record<string, number[]>)
 
               return Object.entries(groups).map(([cardType, indices]) => {
-                const count = indices.length
+                const inFlight = motionHolds.handByType[cardType as LandType] ?? 0
+                const landedCount = indices.length - inFlight
                 const isRevealed = indices.some(i => swampRevealedCards.includes(i))
                 const isSelectableForReveal = swampPhase === 'reveal' && !!onSwampReveal
                 const isSelectableForDiscard = swampPhase === 'discard' && isRevealed && !!onSwampDiscard
@@ -175,24 +191,30 @@ export default function PlayerSection({
                     }
                   } else if (isSelectableForDiscard) {
                     onSwampDiscard!(indices[0])
+                  } else if (onHandLimitDiscard) {
+                    onHandLimitDiscard(indices[indices.length - 1])
                   } else if (canPlayCard) {
                     onPlayCard(indices[0])
                   }
                 }
-                const hasClickAction = isSelectableForReveal || isSelectableForDiscard || (canPlayCard && !!onPlayCard)
+                const hasClickAction =
+                  isSelectableForReveal || isSelectableForDiscard || !!onHandLimitDiscard || (canPlayCard && !!onPlayCard)
 
-                const isNewCard = drawnCardType === cardType
                 return (
-                  <div key={isNewCard ? `${cardType}-draw` : cardType} className={`hand-card-group${isNewCard ? ' card-draw-anim' : ''}`}>
+                  <div
+                    key={cardType}
+                    className={`hand-card-group${landedCount <= 0 ? ' motion-awaiting' : ''}`}
+                    data-motion={motionKey.handCard(playerId, cardType as CardType)}
+                  >
                     {swampPhase === 'reveal' && revealedOrderNumbers.length > 0 && (
                       <div className="swamp-reveal-badges">
                         {revealedOrderNumbers.map((orderNum) => (
-                          <span key={orderNum} className="swamp-reveal-badge">{orderNum}</span>
+                          <span key={orderNum} className="swamp-reveal-badge" title={`Revealed card ${orderNum}`}>{orderNum}</span>
                         ))}
                       </div>
                     )}
                     <Card
-                      card={cardType as import('@/lib/gameLogic').LandType}
+                      card={cardType as CardType}
                       index={0}
                       totalCards={1}
                       isPlayer1={isPlayer1}
@@ -200,8 +222,8 @@ export default function PlayerSection({
                       isInHand={true}
                       isFlat={true}
                       isSwampRevealed={isRevealed}
-                      isSwampSelectable={isSelectableForReveal || isSelectableForDiscard}
-                      count={count}
+                      isSwampSelectable={isSelectableForReveal || isSelectableForDiscard || !!onHandLimitDiscard}
+                      count={Math.max(1, landedCount)}
                     />
                   </div>
                 )
@@ -209,12 +231,13 @@ export default function PlayerSection({
             })()
           )}
         </div>
-        <Deck 
-          count={player.deck.length} 
+        <Deck
+          count={deckCount}
           isPlayer1={isPlayer1}
+          isShuffling={isShuffling}
+          motionKey={motionKey.deck(playerId)}
         />
       </div>
     </div>
   )
 }
-

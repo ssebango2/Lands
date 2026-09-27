@@ -2,7 +2,12 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import Link from 'next/link'
+import Dialog from '@/components/Dialog'
+import MatchOptionsForm from '@/components/MatchOptionsForm'
+import type { MatchOptions } from '@/lib/gameLogic'
+import { createPlayerToken, savePlayerToken } from '@/lib/playerToken'
+
+const DEFAULT_OPTIONS: MatchOptions = { goFirst: true, handLimit: false }
 
 export default function LobbyPage() {
   const router = useRouter()
@@ -10,27 +15,35 @@ export default function LobbyPage() {
   const [isCreating, setIsCreating] = useState(false)
   const [isJoining, setIsJoining] = useState(false)
   const [error, setError] = useState('')
+  const [isChoosingOptions, setIsChoosingOptions] = useState(false)
+  const [options, setOptions] = useState<MatchOptions>(DEFAULT_OPTIONS)
 
   const handleCreateGame = async () => {
     setIsCreating(true)
     setError('')
-    
+    const creatorToken = createPlayerToken()
+
     try {
       const response = await fetch('/api/games', {
         method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ options, creatorToken }),
       })
-      
+
       const data = await response.json()
-      
+
       if (data.success) {
+        savePlayerToken(data.code, creatorToken)
         router.push(`/game/${data.code}`)
       } else {
         setError(data.error || 'Failed to create game')
+        setIsChoosingOptions(false)
+        setIsCreating(false)
       }
     } catch (err) {
       setError('Failed to create game. Please try again.')
       console.error('Error creating game:', err)
-    } finally {
+      setIsChoosingOptions(false)
       setIsCreating(false)
     }
   }
@@ -72,7 +85,7 @@ export default function LobbyPage() {
         <div className="lobby-actions">
           <button 
             className="btn btn-primary btn-large"
-            onClick={handleCreateGame}
+            onClick={() => setIsChoosingOptions(true)}
             disabled={isCreating || isJoining}
           >
             {isCreating ? 'Creating...' : 'Create New Game'}
@@ -86,7 +99,8 @@ export default function LobbyPage() {
             <input
               type="text"
               className="game-code-input"
-              placeholder="Enter Game Code"
+              placeholder="Enter game code"
+              aria-label="Game code"
               value={gameCode}
               onChange={(e) => setGameCode(e.target.value.toUpperCase())}
               onKeyPress={(e) => e.key === 'Enter' && handleJoinGame()}
@@ -104,7 +118,7 @@ export default function LobbyPage() {
         </div>
 
         {error && (
-          <div className="lobby-error">
+          <div className="lobby-error" role="alert">
             {error}
           </div>
         )}
@@ -115,6 +129,33 @@ export default function LobbyPage() {
           <p>• Games support 2 players</p>
         </div>
       </div>
+
+      {isChoosingOptions && (
+        <Dialog
+          eyebrow="New game"
+          title="Game options"
+          description="Choose how this game is played. Your opponent will play with these settings."
+          onClose={isCreating ? undefined : () => setIsChoosingOptions(false)}
+          closeLabel="Close game options"
+          actions={
+            <>
+              <button
+                type="button"
+                className="btn btn-secondary"
+                onClick={() => setIsChoosingOptions(false)}
+                disabled={isCreating}
+              >
+                Cancel
+              </button>
+              <button type="button" className="btn btn-primary" onClick={handleCreateGame} disabled={isCreating}>
+                {isCreating ? 'Creating…' : 'Create game'}
+              </button>
+            </>
+          }
+        >
+          <MatchOptionsForm value={options} onChange={setOptions} disabled={isCreating} />
+        </Dialog>
+      )}
     </div>
   )
 }

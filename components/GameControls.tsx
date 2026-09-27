@@ -8,7 +8,7 @@ interface GameControlsProps {
 export default function GameControls({ onNewGame, gameState }: GameControlsProps) {
   return (
     <div className="game-controls">
-      <button className="btn btn-small" onClick={onNewGame}>
+      <button type="button" className="btn btn-secondary btn-small" onClick={onNewGame}>
         New Game
       </button>
     </div>

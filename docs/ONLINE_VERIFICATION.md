@@ -22,7 +22,8 @@ Use this checklist to verify basic online gameplay works before implementing sta
 
 ### 1. Lobby & Join
 
-- [ ] **Create game** (Window A): Click "Create New Game" → redirects to `/game/[CODE]` with "Waiting for Player..."
+- [ ] **Create game** (Window A): Click "Create New Game" → options dialog ("You go first", "7-card hand limit") → Create game → redirects to `/game/[CODE]` with "Waiting for an opponent"
+- [ ] With "You go first" off, the joining player takes turn 1; with the hand limit on, the rail shows "7-card hand limit" and ending a turn with 8+ cards prompts a discard down to 7
 - [ ] **Join game** (Window B): Go to lobby, enter the 6-letter code, click Join → both see the game board
 - [ ] Each window shows correct "You are Player 1" / "You are Player 2"
 
@@ -45,10 +46,12 @@ Use this checklist to verify basic online gameplay works before implementing sta
 ### 4. Card Effects
 
 - [ ] **Plains**: Play → draw a card → turn advances
-- [ ] **Mountain**: Play → opponent selects a board card to discard → turn advances
-- [ ] **Forest**: Play → select a graveyard card to return to hand → turn advances
+- [ ] **Mountain**: Play → *you* pick an opponent's land (they see "Choosing a target…") → the target is marked on both screens → *then* the opponent may counter → resolves or is countered → turn advances
+- [ ] **Forest**: Play → pick a card from your graveyard → marked for both → opponent may counter → card returns (or Forest is countered) → turn advances
+- [ ] **Mountain / Forest with no valid target** (empty opponent board / empty graveyard): skips targeting and goes straight to the counter window
 - [ ] **Swamp**: Play → opponent reveals 3 hand cards → you choose one to discard → turn advances
-- [ ] **Island**: (if implemented) Play → reveal top card → choose discard or put back → turn advances
+- [ ] **Island**: Play → reveal top card → "Inspect board" collapses the panel to a tray (no blur) → "Return to decision" → choose discard or put back → turn advances
+- [ ] **Card motion**: discarded / destroyed cards fly to the right graveyard; draws lift off the deck and flip into your hand (card back stays for the opponent's hand)
 
 ### 5. Win Conditions
 
@@ -59,7 +62,14 @@ Use this checklist to verify basic online gameplay works before implementing sta
 
 - [ ] **Pending effect blocks End Turn**: Start Mountain/Forest/Swamp, try End Turn → blocked with message
 - [ ] **Empty deck**: Playing Plains with empty deck doesn't break
-- [ ] **Refresh**: One player refreshes → rejoin flow or reconnection (if implemented)
+- [ ] **Refresh**: One player refreshes mid-effect → they reclaim the same seat (per-tab token in sessionStorage) and the pending target / counter / Island decision is still there
+
+### 7. Rematch
+
+- [ ] After a win, both see **Request rematch**, which opens the same options as the lobby (defaults: alternate who starts, keep the current hand-limit setting)
+- [ ] Requester sees "Rematch requested…" plus the options summary, with **Cancel request**; opponent sees the options from their side with **Accept** / **Decline**
+- [ ] Accept → fresh match on the same code, seats kept, the requester's options applied
+- [ ] Decline / cancel / opponent closes the tab / 60 s timeout → status message, no new match
 
 ---
 

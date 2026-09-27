@@ -10,6 +10,24 @@ const port = parseInt(process.env.PORT || '3000', 10)
 const app = next({ dev, hostname, port })
 const handle = app.getRequestHandler()
 
+function readJsonBody(req, limit = 10_000) {
+  return new Promise((resolve) => {
+    let body = ''
+    req.on('data', (chunk) => {
+      body += chunk
+      if (body.length > limit) req.destroy()
+    })
+    req.on('end', () => {
+      try {
+        resolve(body ? JSON.parse(body) : {})
+      } catch {
+        resolve({})
+      }
+    })
+    req.on('error', () => resolve({}))
+  })
+}
+
 function sendJson(res, status, data) {
   res.setHeader('Content-Type', 'application/json')
   res.statusCode = status
@@ -30,7 +48,8 @@ app.prepare().then(() => {
 
       // Handle game API in custom server so we use the same gameStore as socket server
       if (req.method === 'POST' && pathname === '/api/games') {
-        const code = createGame()
+        const body = await readJsonBody(req)
+        const code = createGame({ options: body.options, creatorToken: body.creatorToken })
         return sendJson(res, 200, { success: true, code, message: 'Game created successfully' })
       }
       if (req.method === 'GET' && pathname.startsWith('/api/games/')) {

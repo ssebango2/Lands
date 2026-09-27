@@ -1,5 +1,22 @@
+import type { KeyboardEvent } from 'react'
 import { LandType } from '@/lib/gameLogic'
 import Image from 'next/image'
+
+const CARD_CLASS: Record<LandType, string> = {
+  Plains: 'card-plains',
+  Island: 'card-island',
+  Swamp: 'card-swamp',
+  Mountain: 'card-mountain',
+  Forest: 'card-forest',
+}
+
+export const CARD_IMAGE: Record<LandType, string> = {
+  Plains: '/images/plains.jpg',
+  Island: '/images/island.jpg',
+  Swamp: '/images/swamp.jpg',
+  Mountain: '/images/mountain.jpg',
+  Forest: '/images/forest.jpg',
+}
 
 interface CardProps {
   card: LandType
@@ -19,29 +36,16 @@ interface CardProps {
   faceDown?: boolean
 }
 
+const IMAGE_STYLE: React.CSSProperties = {
+  objectFit: 'cover',
+  position: 'absolute',
+  top: 0,
+  left: 0,
+  width: '100%',
+  height: '100%',
+}
+
 export default function Card({ card, index, totalCards, isPlayer1, onClick, isInHand = false, isSwampRevealed = false, isSwampSelectable = false, isForestRevealed = false, count, isFlat = false, faceDown = false }: CardProps) {
-  const getCardClass = (landType: LandType): string => {
-    const classMap: Record<LandType, string> = {
-      'Plains': 'card-plains',
-      'Island': 'card-island',
-      'Swamp': 'card-swamp',
-      'Mountain': 'card-mountain',
-      'Forest': 'card-forest',
-    }
-    return classMap[landType]
-  }
-
-  const getCardImage = (landType: LandType): string => {
-    const imageMap: Record<LandType, string> = {
-      'Plains': '/images/plains.jpg',
-      'Island': '/images/island.jpg',
-      'Swamp': '/images/swamp.jpg',
-      'Mountain': '/images/mountain.jpg',
-      'Forest': '/images/forest.jpg',
-    }
-    return imageMap[landType]
-  }
-
   // Flat layout: no fan effect. Otherwise use rotation/position for legacy.
   const cardStyle: React.CSSProperties = isFlat || isInHand
     ? { position: 'relative', zIndex: index }
@@ -53,43 +57,62 @@ export default function Card({ card, index, totalCards, isPlayer1, onClick, isIn
         ...(isPlayer1 ? { bottom: '0px' } : { top: '0px' }),
       }
 
-  const cardImage = getCardImage(card)
+  const hasCopies = count != null && count > 1
+  const label = faceDown ? 'Face-down card' : hasCopies ? `${card}, ${count} copies` : card
+
+  const handleKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
+    if (event.key === 'Enter' || event.key === ' ') {
+      event.preventDefault()
+      onClick?.()
+    }
+  }
+
+  const interactiveProps = onClick
+    ? { role: 'button' as const, tabIndex: 0, onKeyDown: handleKeyDown, 'aria-label': label }
+    : {}
+
+  const baseClass = [
+    'card',
+    isPlayer1 ? 'card-player1' : 'card-player2',
+    isInHand && 'card-in-hand',
+    isFlat && 'card-flat',
+    onClick && 'card-interactive',
+  ].filter(Boolean).join(' ')
 
   if (faceDown) {
     return (
       <div
-        className={`card card-face-down ${isPlayer1 ? 'card-player1' : 'card-player2'} ${isInHand ? 'card-in-hand' : ''} ${isFlat ? 'card-flat' : ''}`}
+        className={`${baseClass} card-face-down${isSwampSelectable ? ' card-swamp-selectable' : ''}`}
         style={cardStyle}
         onClick={onClick}
+        {...interactiveProps}
       >
-        <Image
-          src="/images/card-back.jpg"
-          alt="Card back"
-          width={120}
-          height={168}
-          style={{ objectFit: 'cover', position: 'absolute', top: 0, left: 0, width: '100%', height: '100%' }}
-        />
+        <Image src="/images/card-back.jpg" alt="Face-down card" width={120} height={168} style={IMAGE_STYLE} />
       </div>
     )
   }
 
+  const stateClass = [
+    CARD_CLASS[card],
+    isSwampRevealed && 'card-swamp-revealed',
+    isSwampSelectable && 'card-swamp-selectable',
+    isForestRevealed && 'card-forest-revealed',
+  ].filter(Boolean).join(' ')
+
   return (
-    <div 
-      className={`card ${getCardClass(card)} ${isPlayer1 ? 'card-player1' : 'card-player2'} ${isInHand ? 'card-in-hand' : ''} ${isFlat ? 'card-flat' : ''} ${isSwampRevealed ? 'card-swamp-revealed' : ''} ${isSwampSelectable ? 'card-swamp-selectable' : ''} ${isForestRevealed ? 'card-forest-revealed' : ''}`}
+    <div
+      className={`${baseClass} ${stateClass}`}
       style={cardStyle}
       onClick={onClick}
+      {...interactiveProps}
     >
-      <Image
-        src={cardImage}
-        alt={card}
-        width={120}
-        height={168}
-        style={{ objectFit: 'cover', position: 'absolute', top: 0, left: 0, width: '100%', height: '100%' }}
-      />
-      {count != null && count > 1 && (
-        <span className="card-count-badge">{count}</span>
+      <Image src={CARD_IMAGE[card]} alt={card} width={120} height={168} style={IMAGE_STYLE} />
+      {hasCopies && (
+        <span className="card-count-badge">
+          <span aria-hidden="true">×</span>{count}
+          <span className="visually-hidden"> copies</span>
+        </span>
       )}
     </div>
   )
 }
-
