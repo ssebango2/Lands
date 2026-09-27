@@ -1,6 +1,9 @@
 import type { KeyboardEvent } from 'react'
 import { LandType } from '@/lib/gameLogic'
+import { CARD_BACK_IMAGE, CARD_IMAGE } from '@/lib/cardImages'
 import Image from 'next/image'
+
+export { CARD_IMAGE }
 
 const CARD_CLASS: Record<LandType, string> = {
   Plains: 'card-plains',
@@ -8,14 +11,6 @@ const CARD_CLASS: Record<LandType, string> = {
   Swamp: 'card-swamp',
   Mountain: 'card-mountain',
   Forest: 'card-forest',
-}
-
-export const CARD_IMAGE: Record<LandType, string> = {
-  Plains: '/images/plains.jpg',
-  Island: '/images/island.jpg',
-  Swamp: '/images/swamp.jpg',
-  Mountain: '/images/mountain.jpg',
-  Forest: '/images/forest.jpg',
 }
 
 interface CardProps {
@@ -87,7 +82,7 @@ export default function Card({ card, index, totalCards, isPlayer1, onClick, isIn
         onClick={onClick}
         {...interactiveProps}
       >
-        <Image src="/images/card-back.jpg" alt="Face-down card" width={120} height={168} style={IMAGE_STYLE} />
+        <Image src={CARD_BACK_IMAGE} alt="Face-down card" width={120} height={168} style={IMAGE_STYLE} />
       </div>
     )
   }

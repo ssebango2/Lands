@@ -1201,7 +1201,7 @@ a {
 }
 
 .deck-card-back {
-  background: #15110d url('/images/card-back.jpg') center / cover no-repeat;
+  background: #15110d url('/images/card-back.webp') center / cover no-repeat;
 }
 
 .deck-card:nth-child(1) { z-index: 3; }

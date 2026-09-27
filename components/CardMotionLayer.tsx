@@ -2,9 +2,7 @@
 
 import { memo, useLayoutEffect, useRef } from 'react'
 import { ActiveFlight, Rect } from '@/lib/useCardMotion'
-import { CARD_IMAGE } from './Card'
-
-const CARD_BACK = '/images/card-back.jpg'
+import { CARD_BACK_IMAGE as CARD_BACK, CARD_IMAGE } from '@/lib/cardImages'
 
 const DISCARD_MS = 380
 const DRAW_MS = 520
